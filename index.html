@@ -1,0 +1,110 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>宝の喝水提醒</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient-particles" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <main class="app-shell">
+    <section class="hero">
+      <div class="pixel-sky" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <div class="brand-row">
+        <div class="tiny-heart" aria-hidden="true"></div>
+        <p>宝の圣水补给器</p>
+      </div>
+
+      <div class="cup-scene" aria-hidden="true">
+        <div class="altar-runes">✦ ✚ ✦</div>
+        <div class="sacred-halo"></div>
+        <div class="cup">
+          <div class="water" id="cupWater"></div>
+          <img class="core-icon" src="assets/icon.png" alt="">
+          <div class="bubbles">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="shine"></div>
+        </div>
+        <div class="cat">
+          <div class="ear left"></div>
+          <div class="ear right"></div>
+          <div class="face">
+            <span class="eye"></span>
+            <span class="eye"></span>
+            <span class="mouth"></span>
+          </div>
+        </div>
+      </div>
+
+      <h1>神圣圣水补给器</h1>
+      <p class="subtitle">今日补水仪式，正在被月光轻轻守护。</p>
+    </section>
+
+    <section class="progress-panel">
+      <div class="progress-copy">
+        <span>今日圣水补给</span>
+        <strong>已收集生命之水 <span class="water-count"><b id="cupsCount">0</b><i>/</i><b id="goalCount">8</b></span></strong>
+      </div>
+
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-fill" id="progressFill"></div>
+        <div class="progress-segments" id="progressSegments"></div>
+      </div>
+
+      <div class="action-row">
+        <button class="undo-button" id="undoButton" type="button">撤回 -1</button>
+        <button class="drink-button" id="drinkButton" type="button">补给 +1</button>
+      </div>
+      <p class="encouragement" id="encouragement">小小补水仪式，正在温柔待机。</p>
+    </section>
+
+    <section class="settings-panel" aria-label="提醒设置">
+      <div class="setting-line">
+        <label for="goalInput">今日目标</label>
+        <input id="goalInput" type="number" min="1" max="30" step="1">
+      </div>
+
+      <div class="setting-block">
+        <p>圣水铃声间隔</p>
+        <div class="interval-grid" id="intervalGrid">
+          <button type="button" data-minutes="30">30分钟</button>
+          <button type="button" data-minutes="60">1小时</button>
+          <button type="button" data-minutes="90">1.5小时</button>
+          <button type="button" data-minutes="120">2小时</button>
+        </div>
+      </div>
+
+      <label class="switch-row">
+        <span>暂停圣水铃声</span>
+        <input id="pausedInput" type="checkbox">
+        <i aria-hidden="true"></i>
+      </label>
+
+      <label class="switch-row">
+        <span>开机召唤</span>
+        <input id="startupInput" type="checkbox">
+        <i aria-hidden="true"></i>
+      </label>
+    </section>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
