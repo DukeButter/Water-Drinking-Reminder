@@ -1,0 +1,18 @@
+﻿Reward icon assets are sourced from CC0 OpenGameArt resources.
+
+Pixel Treasure Chest and Piles of Gold
+Source: https://opengameart.org/content/pixel-treasure-chest-and-piles-of-gold
+License: CC0
+Files used:
+- Pixel Treasure Chest Closed.png -> reward-chest-closed.png
+- Pixel Treasure Chest Open.png -> reward-chest-open.png
+- Gold Large.png -> reward-gold-large.png
+- Gold SMall.png -> reward-gold-small.png
+
+CC0 Gem Icons
+Source: https://opengameart.org/content/cc0-gem-icons
+License: CC0
+Files used from gem-7soul1_20201212:
+- sapphire.png -> reward-sapphire.png
+- diamond.png -> reward-diamond.png
+- crystal_02.png -> reward-fragment.png

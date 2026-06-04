@@ -39,23 +39,25 @@ const blessingResult = document.querySelector('#blessingResult');
 const blessingOverlay = document.querySelector('#blessingOverlay');
 const developerBadge = document.querySelector('#developerBadge');
 const rewardSlot = document.querySelector('#rewardSlot');
+const slotRewardIcon = document.querySelector('#slotRewardIcon');
 const slotRewardName = document.querySelector('#slotRewardName');
 const slotRewardValue = document.querySelector('#slotRewardValue');
 const rewardCard = document.querySelector('#rewardCard');
+const rewardIcon = document.querySelector('#rewardIcon');
 const rewardTitle = document.querySelector('#rewardTitle');
 const rewardSubtitle = document.querySelector('#rewardSubtitle');
 
 const blessingRollItems = [
-  { label: '5 圣水金币', value: '+5', rarity: 'common' },
-  { label: '10 圣水金币', value: '+10', rarity: 'common' },
-  { label: '20 圣水金币', value: '+20', rarity: 'rare' },
-  { label: '50 圣水金币', value: '+50', rarity: 'epic' },
-  { label: '稀有外观碎片', value: '+1', rarity: 'legendary' },
-  { label: '稀有圣物', value: '???', rarity: 'legendary' },
-  { label: '神圣皮肤碎片', value: '???', rarity: 'legendary' },
-  { label: '特殊光环', value: '???', rarity: 'epic' },
-  { label: '大量圣水金币', value: '+50', rarity: 'epic' },
-  { label: '一堆圣水金币', value: '+20', rarity: 'rare' }
+  { label: '5 圣水金币', value: '+5', rarity: 'common', icon: 'gold-small' },
+  { label: '10 圣水金币', value: '+10', rarity: 'common', icon: 'gold-small' },
+  { label: '20 圣水金币', value: '+20', rarity: 'rare', icon: 'gold-large' },
+  { label: '50 圣水金币', value: '+50', rarity: 'epic', icon: 'chest-open' },
+  { label: '稀有外观碎片', value: '+1', rarity: 'legendary', icon: 'fragment' },
+  { label: '蓝宝石圣物', value: '???', rarity: 'legendary', icon: 'sapphire' },
+  { label: '钻石圣物', value: '???', rarity: 'legendary', icon: 'diamond' },
+  { label: '封印宝箱', value: '???', rarity: 'epic', icon: 'chest-closed' },
+  { label: '大量圣水金币', value: '+50', rarity: 'epic', icon: 'chest-open' },
+  { label: '一堆圣水金币', value: '+20', rarity: 'rare', icon: 'gold-large' }
 ];
 
 const segmentPalette = [
@@ -175,18 +177,43 @@ function describeReward(reward) {
   return reward.type === 'rareSkinFragments' ? `获得 ${reward.label} x${reward.amount}` : `获得 ${reward.label}`;
 }
 
+function getHiddenBlessingText() {
+  return blessingAnimationRunning ? '圣水核心正在光柱中判定赐福。' : '圣水瓶正在等待今日的光。';
+}
+
 function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+function rewardIconMarkup(icon) {
+  const paths = {
+    'gold-small': 'assets/rewards/reward-gold-small.png',
+    'gold-large': 'assets/rewards/reward-gold-large.png',
+    'chest-open': 'assets/rewards/reward-chest-open.png',
+    'chest-closed': 'assets/rewards/reward-chest-closed.png',
+    sapphire: 'assets/rewards/reward-sapphire.png',
+    diamond: 'assets/rewards/reward-diamond.png',
+    fragment: 'assets/rewards/reward-fragment.png'
+  };
+
+  return '<img src="' + (paths[icon] || paths['gold-small']) + '" alt="">';
+}
 function getRewardDisplay(reward) {
   return reward.type === 'rareSkinFragments'
-    ? { label: '稀有外观碎片', value: '+1', rarity: 'legendary' }
-    : { label: `${reward.amount} 圣水金币`, value: `+${reward.amount}`, rarity: reward.amount >= 50 ? 'epic' : reward.amount >= 20 ? 'rare' : 'common' };
+    ? { label: '稀有外观碎片', value: '+1', rarity: 'legendary', icon: 'fragment' }
+    : {
+        label: `${reward.amount} 圣水金币`,
+        value: `+${reward.amount}`,
+        rarity: reward.amount >= 50 ? 'epic' : reward.amount >= 20 ? 'rare' : 'common',
+        icon: reward.amount >= 50 ? 'chest-open' : reward.amount >= 20 ? 'gold-large' : 'gold-small'
+      };
 }
 
 function setSlotReward(item) {
   rewardSlot.dataset.rarity = item.rarity;
+  rewardSlot.dataset.icon = item.icon;
+  slotRewardIcon.className = 'slot-reward-icon ' + item.icon;
+  slotRewardIcon.innerHTML = rewardIconMarkup(item.icon);
   slotRewardName.textContent = item.label;
   slotRewardValue.textContent = item.value;
   rewardSlot.classList.remove('tick');
@@ -196,6 +223,9 @@ function setSlotReward(item) {
 function showReward(reward) {
   const display = getRewardDisplay(reward);
   rewardCard.dataset.rarity = display.rarity;
+  rewardCard.dataset.icon = display.icon;
+  rewardIcon.className = 'reward-card-icon ' + display.icon;
+  rewardIcon.innerHTML = rewardIconMarkup(display.icon);
   rewardTitle.textContent = display.label;
   rewardSubtitle.textContent = display.value;
   rewardCard.classList.add('show');
@@ -203,7 +233,7 @@ function showReward(reward) {
 
 async function rollBlessingSlot(finalReward) {
   const finalDisplay = getRewardDisplay(finalReward);
-  const intervals = [48, 48, 52, 56, 62, 68, 78, 92, 110, 136, 168, 210, 270, 340];
+  const intervals = [36, 36, 38, 40, 42, 46, 52, 58, 68, 82, 102, 132, 172, 230, 310];
 
   rewardSlot.classList.add('rolling');
   for (let index = 0; index < intervals.length; index += 1) {
@@ -222,12 +252,13 @@ async function playBlessingAnimation(reward) {
   blessingAnimationRunning = true;
   rewardCard.classList.remove('show');
   rewardSlot.classList.remove('locked');
-  blessingOverlay.classList.remove('pillar', 'rolling', 'finale', 'jackpot');
+  blessingOverlay.classList.remove('charge', 'pillar', 'rolling', 'finale', 'jackpot');
   blessingOverlay.classList.add('active');
   blessingOverlay.setAttribute('aria-hidden', 'false');
 
+  blessingOverlay.classList.add('charge');
   playBlessingCue('open');
-  await wait(320);
+  await wait(520);
   blessingOverlay.classList.add('pillar');
   playBlessingCue('pillar');
   await wait(760);
@@ -242,7 +273,7 @@ async function playBlessingAnimation(reward) {
   showReward(reward);
   await wait(2350);
 
-  blessingOverlay.classList.remove('active', 'pillar', 'rolling', 'finale', 'jackpot');
+  blessingOverlay.classList.remove('active', 'charge', 'pillar', 'rolling', 'finale', 'jackpot');
   blessingOverlay.setAttribute('aria-hidden', 'true');
   rewardCard.classList.remove('show');
   rewardSlot.classList.remove('locked', 'tick');
@@ -295,9 +326,11 @@ function render(state) {
   const blessingAvailability = getBlessingAvailability(state);
   blessingButton.disabled = blessingAnimationRunning || !blessingAvailability.available;
   blessingStatus.textContent = blessingAvailability.status;
-  blessingResult.textContent = state.lastBlessingReward && state.lastBlessingReward.date === getTodayKey()
-    ? describeReward(state.lastBlessingReward)
-    : '圣水瓶正在等待今日的光。';
+  blessingResult.textContent = blessingAnimationRunning
+    ? getHiddenBlessingText()
+    : state.lastBlessingReward && state.lastBlessingReward.date === getTodayKey()
+      ? describeReward(state.lastBlessingReward)
+      : '圣水瓶正在等待今日的光。';
 
   if (!isComplete) {
     completionTonePlayedForToday = false;
@@ -333,12 +366,15 @@ drinkButton.addEventListener('click', async () => {
 blessingButton.addEventListener('click', async () => {
   if (blessingAnimationRunning) return;
 
+  blessingAnimationRunning = true;
   blessingButton.disabled = true;
-  blessingResult.textContent = '圣水瓶正在聚集金色与冰蓝的光。';
+  blessingResult.textContent = '圣水核心正在蓄力，请等待赐福降临。';
 
   const result = await window.waterApp.drawBlessing();
+  blessingResult.textContent = getHiddenBlessingText();
 
   if (!result.ok) {
+    blessingAnimationRunning = false;
     render(result.state);
     blessingResult.textContent = result.reason === 'already-drawn' ? '今日赐福已开启，明天再来。' : '完成今日补水后才可开启赐福。';
     return;
