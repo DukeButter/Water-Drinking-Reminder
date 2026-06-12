@@ -23,8 +23,14 @@ const defaultState = {
   customIntervalMinutes: 45,
   paused: false,
   launchAtStartup: false,
+  ownedSkins: ['sacred'],
+  activeSkin: 'sacred',
   developerMode
 };
+
+const skinCatalog = [
+  { id: 'origin', name: '原初', price: 1 }
+];
 
 const blessingRewards = [
   { id: 'water_coin_5', label: '5 圣水金币', type: 'blessingCoins', amount: 5, chance: 50 },
@@ -74,6 +80,12 @@ function getReminderMessage() {
 
 function ensureTodayState() {
   state.developerMode = developerMode;
+  state.ownedSkins = Array.isArray(state.ownedSkins) && state.ownedSkins.length > 0 ? state.ownedSkins : ['sacred'];
+  if (!state.ownedSkins.includes('sacred')) {
+    state.ownedSkins.unshift('sacred');
+  }
+  state.activeSkin = state.ownedSkins.includes(state.activeSkin) ? state.activeSkin : 'sacred';
+
   const currentDate = todayKey();
 
   if (state.date !== currentDate) {
@@ -209,6 +221,52 @@ function drawDailyBlessing() {
   sendStateToRenderer();
 
   return { ok: true, reward: result, state };
+}
+
+function getSkinById(skinId) {
+  return skinCatalog.find((skin) => skin.id === skinId);
+}
+
+function buySkin(skinId) {
+  ensureTodayState();
+
+  const skin = getSkinById(skinId);
+  if (!skin) {
+    return { ok: false, reason: 'skin-not-found', state };
+  }
+
+  if (state.ownedSkins.includes(skin.id)) {
+    state.activeSkin = skin.id;
+    saveState();
+    sendStateToRenderer();
+    return { ok: true, reason: 'already-owned', state };
+  }
+
+  if ((state.blessingCoins || 0) < skin.price) {
+    return { ok: false, reason: 'coin-insufficient', state };
+  }
+
+  state.blessingCoins -= skin.price;
+  state.ownedSkins.push(skin.id);
+  state.activeSkin = skin.id;
+  saveState();
+  sendStateToRenderer();
+
+  return { ok: true, state };
+}
+
+function equipSkin(skinId) {
+  ensureTodayState();
+
+  if (!state.ownedSkins.includes(skinId)) {
+    return { ok: false, reason: 'skin-not-owned', state };
+  }
+
+  state.activeSkin = skinId;
+  saveState();
+  sendStateToRenderer();
+
+  return { ok: true, state };
 }
 
 function createFallbackIcon() {
@@ -384,6 +442,10 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('draw-blessing', () => drawDailyBlessing());
+
+  ipcMain.handle('buy-skin', (_, skinId) => buySkin(skinId));
+
+  ipcMain.handle('equip-skin', (_, skinId) => equipSkin(skinId));
 
   ipcMain.handle('undo-water', () => {
     ensureTodayState();

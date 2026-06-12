@@ -131,6 +131,44 @@
         <i aria-hidden="true"></i>
       </label>
     </section>
+
+    <button class="shop-entry-button" id="shopEntryButton" type="button">圣水皮肤商店</button>
+
+    <section class="shop-panel" id="shopPanel" aria-label="圣水皮肤商店" hidden>
+      <div class="shop-header">
+        <button class="shop-back-button" id="shopBackButton" type="button">返回</button>
+        <div>
+          <span>圣水皮肤商店</span>
+          <strong>圣水金币余额 <b id="shopCoinCount">0</b></strong>
+        </div>
+      </div>
+
+      <div class="skin-shop-grid">
+        <article class="skin-card">
+          <div class="skin-preview sacred-preview" aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="skin-copy">
+            <span>神圣圣水</span>
+            <strong>默认持有</strong>
+          </div>
+          <button class="skin-action-button" id="equipSacredButton" type="button">装备</button>
+        </article>
+
+        <article class="skin-card origin-card">
+          <div class="skin-preview origin-preview" aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="skin-copy">
+            <span>原初</span>
+            <strong>早期赛博朋克风格 / 售价 1 圣水金币</strong>
+          </div>
+          <button class="skin-action-button" id="originSkinButton" type="button">1金币购买</button>
+        </article>
+      </div>
+
+      <p class="shop-status" id="shopStatus">购买后可以随时回来切换皮肤。</p>
+    </section>
   </main>
 
   <div class="blessing-overlay" id="blessingOverlay" aria-hidden="true">

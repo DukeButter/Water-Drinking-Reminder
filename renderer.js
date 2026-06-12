@@ -50,6 +50,21 @@ const rewardCard = document.querySelector('#rewardCard');
 const rewardIcon = document.querySelector('#rewardIcon');
 const rewardTitle = document.querySelector('#rewardTitle');
 const rewardSubtitle = document.querySelector('#rewardSubtitle');
+const shopEntryButton = document.querySelector('#shopEntryButton');
+const shopPanel = document.querySelector('#shopPanel');
+const shopBackButton = document.querySelector('#shopBackButton');
+const shopCoinCount = document.querySelector('#shopCoinCount');
+const shopStatus = document.querySelector('#shopStatus');
+const equipSacredButton = document.querySelector('#equipSacredButton');
+const originSkinButton = document.querySelector('#originSkinButton');
+
+const homeViewElements = [
+  document.querySelector('.hero'),
+  document.querySelector('.progress-panel'),
+  document.querySelector('.blessing-panel'),
+  document.querySelector('.settings-panel'),
+  shopEntryButton
+];
 
 const blessingRollItems = [
   { label: '5 圣水金币', value: '+5', rarity: 'common', icon: 'gold-small' },
@@ -77,6 +92,7 @@ const segmentPalette = [
 let currentState = null;
 let completionTonePlayedForToday = false;
 let blessingAnimationRunning = false;
+let currentView = 'home';
 
 function randomItem(list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -298,6 +314,42 @@ function renderProgressSegments(state) {
     progressSegments.appendChild(segment);
   }
 }
+
+function setView(view) {
+  currentView = view;
+  const isShopView = view === 'shop';
+
+  homeViewElements.forEach((element) => {
+    if (element) element.hidden = isShopView;
+  });
+
+  document.body.classList.toggle('shop-view', isShopView);
+  shopPanel.hidden = !isShopView;
+}
+
+function renderShop(state) {
+  const ownedSkins = Array.isArray(state.ownedSkins) ? state.ownedSkins : ['sacred'];
+  const activeSkin = state.activeSkin || 'sacred';
+  const ownsOrigin = ownedSkins.includes('origin');
+  const hasEnoughCoins = (state.blessingCoins || 0) >= 1;
+
+  shopCoinCount.textContent = state.blessingCoins || 0;
+
+  equipSacredButton.textContent = activeSkin === 'sacred' ? '使用中' : '装备';
+  equipSacredButton.disabled = activeSkin === 'sacred';
+
+  if (activeSkin === 'origin') {
+    originSkinButton.textContent = '使用中';
+    originSkinButton.disabled = true;
+  } else if (ownsOrigin) {
+    originSkinButton.textContent = '装备';
+    originSkinButton.disabled = false;
+  } else {
+    originSkinButton.textContent = '1金币购买';
+    originSkinButton.disabled = !hasEnoughCoins;
+  }
+}
+
 function render(state) {
   currentState = state;
 
@@ -317,6 +369,7 @@ function render(state) {
   renderProgressSegments(state);
   cupWater.style.height = `${Math.max(12, percent)}%`;
   document.body.classList.toggle('goal-complete', isComplete);
+  document.body.classList.toggle('skin-origin', state.activeSkin === 'origin');
 
   developerBadge.hidden = !state.developerMode;
 
@@ -343,6 +396,7 @@ function render(state) {
   customIntervalOption.classList.toggle('active', isCustomInterval);
   customIntervalOption.textContent = isCustomInterval ? `${state.intervalMinutes}分钟` : '自定义时间';
   customIntervalInput.value = isCustomInterval ? state.intervalMinutes : state.customIntervalMinutes || state.intervalMinutes || 60;
+  renderShop(state);
 }
 
 async function saveSettings(partialSettings) {
@@ -435,7 +489,39 @@ customIntervalInput.addEventListener('keydown', (event) => {
   }
 });
 
+shopEntryButton.addEventListener('click', () => {
+  setView('shop');
+  shopStatus.textContent = '购买后可以随时回来切换皮肤。';
+});
+
+shopBackButton.addEventListener('click', () => {
+  setView('home');
+});
+
+equipSacredButton.addEventListener('click', async () => {
+  const result = await window.waterApp.equipSkin('sacred');
+  render(result.state);
+  shopStatus.textContent = result.ok ? '已切换回神圣圣水皮肤。' : '暂时无法切换皮肤。';
+});
+
+originSkinButton.addEventListener('click', async () => {
+  const ownedSkins = currentState && Array.isArray(currentState.ownedSkins) ? currentState.ownedSkins : ['sacred'];
+  const result = ownedSkins.includes('origin')
+    ? await window.waterApp.equipSkin('origin')
+    : await window.waterApp.buySkin('origin');
+
+  render(result.state);
+  shopStatus.textContent = result.ok
+    ? '原初皮肤已装备。'
+    : result.reason === 'coin-insufficient'
+      ? '圣水金币不足，需要 1 枚。'
+      : '暂时无法购买原初皮肤。';
+});
+
 window.waterApp.onStateChanged(render);
 
-window.waterApp.getState().then(render);
+window.waterApp.getState().then((state) => {
+  setView('home');
+  render(state);
+});
 
